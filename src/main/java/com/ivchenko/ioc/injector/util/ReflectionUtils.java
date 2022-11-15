@@ -3,10 +3,12 @@ package com.ivchenko.ioc.injector.util;
 import com.google.common.reflect.Invokable;
 import com.ivchenko.ioc.annotation.Autowired;
 import com.ivchenko.ioc.annotation.PostConstructor;
+import com.ivchenko.ioc.annotation.Qualifier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
@@ -20,6 +22,13 @@ public class ReflectionUtils {
         return classes.stream()
                 .filter(c -> c.isAnnotationPresent(annotation))
                 .collect(Collectors.toSet());
+    }
+
+    public static String getQualifierValue(Parameter parameter) {
+        Qualifier annotation = parameter.getAnnotation(Qualifier.class);
+        if (annotation != null)
+            return parameter.getDeclaredAnnotation(Qualifier.class).value();
+        else return null;
     }
 
     public static boolean hasAutowiredConstructor(Class<?> clazz) {

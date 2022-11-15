@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class Injector {
         Set<Class<?>> packageClasses = getClassesInPackage(mainClass.getPackageName());
         Set<Class<?>> componentClasses = getClassesAnnotatedWith(Component.class, packageClasses);
 
-        // Populating diMap
+        // Populating injectionMap
         for (Class<?> c : componentClasses) {
             Class<?>[] interfaces = c.getInterfaces();
             if (interfaces.length == 0)
@@ -121,19 +122,21 @@ public class Injector {
     }
 
     private List<Object> getConstructorParametersInstances(Constructor<?> constructor) {
-        Class<?>[] parameterTypes = constructor.getParameterTypes();
+        Parameter[] parameters = constructor.getParameters();
         List<Object> parameterInstances = Lists.newArrayList();
 
-        for (Class<?> pt : parameterTypes) {
-            Object beanInstance = getBeanInstance(pt);
+        for (Parameter p : parameters) {
+            Class<?> pType = p.getType();
+            String qualifier = getQualifierValue(p);
+
+            Object beanInstance = getBeanInstance(pType, qualifier);
             if (beanInstance == null) {
-                Class<?> implClass = getImplementationClass(pt, injectionMap);
+                Class<?> implClass = getImplementationClass(pType, injectionMap, qualifier);
                 beanInstance = createInstance(implClass);
                 applicationScope.put(implClass, beanInstance);
             }
             parameterInstances.add(beanInstance);
         }
-
         return parameterInstances;
     }
 
@@ -156,7 +159,11 @@ public class Injector {
     }
 
     private <T> T getBeanInstance(Class<T> interfaceClass) {
-        return InjectionUtils.getBeanInstance(interfaceClass, injectionMap, applicationScope);
+        return getBeanInstance(interfaceClass, null);
+    }
+
+    private <T> T getBeanInstance(Class<T> interfaceClass, String qualifier) {
+        return InjectionUtils.getBeanInstance(interfaceClass, injectionMap, applicationScope, qualifier);
     }
 
     private static Injector getInstance() {

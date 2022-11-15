@@ -9,15 +9,23 @@ import java.util.stream.Collectors;
 public class InjectionUtils {
     @SuppressWarnings("unchecked")
     public static <T> T getBeanInstance(
-            Class<T> interfaceClass, Map<Class<?>, Class<?>> injectionMap, Map<Class<?>, Object> applicationScope
+            Class<T> interfaceClass,
+            Map<Class<?>, Class<?>> injectionMap,
+            Map<Class<?>, Object> applicationScope,
+            String qualifier
     ) {
-        Class<?> implClass = getImplementationClass(interfaceClass, injectionMap);
+        Class<?> implClass = getImplementationClass(interfaceClass, injectionMap, qualifier);
         if (applicationScope.containsKey(implClass))
             return (T) applicationScope.get(implClass);
         else return null;
     }
 
-    public static Class<?> getImplementationClass(Class<?> interfaceClass, Map<Class<?>, Class<?>> diMap) {
+    public static Class<?> getImplementationClass(
+            Class<?> interfaceClass,
+            Map<Class<?>, Class<?>> diMap,
+            String qualifier
+    ) {
+        // Finding all registered implementation classes for interfaceClass
         Set<Map.Entry<Class<?>, Class<?>>> implClassesEntries = diMap.entrySet()
                 .stream()
                 .filter(e -> e.getValue().equals(interfaceClass))
@@ -25,16 +33,16 @@ public class InjectionUtils {
 
         Preconditions.checkState(!implClassesEntries.isEmpty(), "Can't find implementation for class: " + interfaceClass);
 
-        if (implClassesEntries.size() > 1) {
-            // TODO: 11/14/22 Qualifier impl
+        // If qualifier not null return needed implementation instance
+        // Otherwise return first implementation
+        if (qualifier != null) {
             return implClassesEntries.stream()
+                    .filter(e -> e.getKey().getSimpleName().equals(qualifier))
                     .findFirst()
-                    .get()
-                    .getKey();
+                    .map(Map.Entry::getKey)
+                    .orElseThrow(() -> new IllegalStateException("Can't find implementation class for qualifier: " + qualifier));
         }
-
-        // implClassesEntries size for sure equals 1
-        return implClassesEntries.stream()
+        else return implClassesEntries.stream()
                 .findFirst()
                 .get()
                 .getKey();
