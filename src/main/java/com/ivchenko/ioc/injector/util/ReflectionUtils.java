@@ -14,6 +14,10 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class used to make work with Reflections more convenient
+ * @implNote Uses Google Guava Reflect API
+ */
 public class ReflectionUtils {
     public static Set<Class<?>> getClassesAnnotatedWith(
             Class<? extends Annotation> annotation,

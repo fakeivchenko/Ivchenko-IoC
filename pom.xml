@@ -60,7 +60,6 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>${lib.prefix}</classpathPrefix>
-                            <mainClass>com.ivchenko.ioc.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

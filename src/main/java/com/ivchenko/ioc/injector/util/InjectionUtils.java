@@ -6,7 +6,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class which contains methods used by Injector
+ * @implNote Uses Google Guava Preconditions
+ */
 public class InjectionUtils {
+    /**
+     * ReturnsiInstance of the implementation class for specified interface class
+     * @return instance of the implementation class for specified interface class
+     */
     @SuppressWarnings("unchecked")
     public static <T> T getBeanInstance(
             Class<T> interfaceClass,
@@ -20,6 +28,10 @@ public class InjectionUtils {
         else return null;
     }
 
+    /**
+     * Returns implementation class for specified interface class
+     * @return implementation class for specified interface class
+     */
     public static Class<?> getImplementationClass(
             Class<?> interfaceClass,
             Map<Class<?>, Class<?>> diMap,

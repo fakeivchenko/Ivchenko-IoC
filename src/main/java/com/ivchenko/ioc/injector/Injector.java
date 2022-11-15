@@ -18,6 +18,9 @@ import static com.ivchenko.ioc.injector.util.ClassLoaderUtils.getClassesInPackag
 import static com.ivchenko.ioc.injector.util.InjectionUtils.getImplementationClass;
 import static com.ivchenko.ioc.injector.util.ReflectionUtils.*;
 
+/**
+ * Injector, creates objects for {@link Component} classes, injects all dependencies
+ */
 public class Injector {
     // Key: Implementation class
     // Value: Implemented interface
@@ -34,6 +37,10 @@ public class Injector {
         componentsStatusMap = Maps.newHashMap();
     }
 
+    /**
+     * Initializes injector and starts application
+     * @param mainClass main application class
+     */
     public static void startApplication(Class<?> mainClass) {
         getInstance().initialize(mainClass);
     }
@@ -170,6 +177,9 @@ public class Injector {
         return InjectorHolder.INSTANCE;
     }
 
+    /**
+     * Holds Injector instance (Singleton implementation)
+     */
     private static class InjectorHolder {
         private static final Injector INSTANCE = new Injector();
     }
