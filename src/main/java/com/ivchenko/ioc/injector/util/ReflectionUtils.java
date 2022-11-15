@@ -22,18 +22,14 @@ public class ReflectionUtils {
                 .collect(Collectors.toSet());
     }
 
-    public static Set<Class<?>> getAutowiredClasses(Collection<Class<?>> classes) {
-        return classes.stream()
-                .filter(c -> {
-                    Constructor<?>[] constructors = c.getConstructors();
-                    return Arrays.stream(constructors).anyMatch(ReflectionUtils::isAutowired);
-                })
-                .collect(Collectors.toSet());
-    }
-
     public static boolean hasAutowiredConstructor(Class<?> clazz) {
         return Arrays.stream(clazz.getConstructors())
                 .anyMatch(ReflectionUtils::isAutowired);
+    }
+
+    public static Set<Constructor<?>> getAllConstructors(Class<?> clazz) {
+        return Arrays.stream(clazz.getConstructors())
+                .collect(Collectors.toSet());
     }
 
     public static Set<Constructor<?>> getAutowiredConstructors(Class<?> clazz) {

@@ -8,7 +8,6 @@ import com.ivchenko.ioc.injector.util.InjectionUtils;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,8 @@ public class Injector {
     // Key: Implementation class
     // Value: Implemented interface
     private Map<Class<?>, Class<?>> injectionMap;
-
+    // Key: Instance class
+    // Value: Instance
     private Map<Class<?>, Object> applicationScope;
 
     private Map<Class<?>, ComponentStatus> componentsStatusMap; // Can be replaced with observer =\
@@ -59,50 +59,89 @@ public class Injector {
         }
     }
 
-    private Object createInstance(Class<?> clazz)
-            throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    private Object createInstance(Class<?> clazz) {
         checkCreationPreconditions(clazz);
         componentsStatusMap.put(clazz, ComponentStatus.CREATING);
         // for not autowired with no args constructor
         if (!hasAutowiredConstructor(clazz) && hasNoArgsConstructor(clazz)) {
-            Object instance = clazz.getConstructor().newInstance();
-            componentsStatusMap.put(clazz, ComponentStatus.CREATED);
-            return instance;
+            return createInstanceNoArgs(clazz);
         }
         // for not autowired without no args constructor
         if (!hasAutowiredConstructor(clazz) && !hasNoArgsConstructor(clazz)) {
-            componentsStatusMap.put(clazz, ComponentStatus.CREATED);
-            return null;
+            return createInstanceFirstConstructor(clazz);
         }
         // for autowired
         if (hasAutowiredConstructor(clazz)) {
-            Set<Constructor<?>> autowiredConstructors = getAutowiredConstructors(clazz);
-            Preconditions.checkState(
-                    autowiredConstructors.size() == 1,
-                    "Too many autowired constructors: " + clazz.getName());
-            Constructor<?> constructor = autowiredConstructors.stream().findFirst().get();
-            Class<?>[] parameterTypes = constructor.getParameterTypes();
-
-            List<Object> parameterInstances = Lists.newArrayList();
-            for (Class<?> pt : parameterTypes) {
-                Object beanInstance = getBeanInstance(pt);
-                if (beanInstance == null) {
-                    Class<?> implClass = getImplementationClass(pt, injectionMap);
-                    beanInstance = createInstance(implClass);
-                    applicationScope.put(implClass, beanInstance);
-                }
-                parameterInstances.add(beanInstance);
-            }
-            Object instance = constructor.newInstance(parameterInstances.toArray());
-            componentsStatusMap.put(clazz, ComponentStatus.CREATED);
-
-            for (Method m : getPostConstructorMethods(clazz)) {
-                m.invoke(instance);
-            }
-
-            return instance;
+            return createInstanceAutowired(clazz);
         }
-        return null;
+        // Should not happen
+        throw new IllegalStateException("Unknown error while creating instance for class: " + clazz);
+    }
+
+    @SneakyThrows
+    private Object createInstanceNoArgs(Class<?> clazz) {
+        Object instance = clazz.getConstructor().newInstance();
+        componentsStatusMap.put(clazz, ComponentStatus.CREATED);
+        return instance;
+    }
+
+    @SneakyThrows
+    private Object createInstanceFirstConstructor(Class<?> clazz) {
+        Set<Constructor<?>> constructors = getAllConstructors(clazz);
+        Preconditions.checkState(
+                constructors.size() > 0,
+                "No public constructors declared: " + clazz
+        );
+        Constructor<?> constructor = constructors.stream()
+                .findFirst()
+                .get();
+        List<Object> parametersInstances = getConstructorParametersInstances(constructor);
+        Object instance = constructor.newInstance(parametersInstances.toArray());
+        componentsStatusMap.put(clazz, ComponentStatus.CREATED);
+
+        invokePostConstructor(instance);
+        return instance;
+    }
+
+    @SneakyThrows
+    private Object createInstanceAutowired(Class<?> clazz) {
+        Set<Constructor<?>> autowiredConstructors = getAutowiredConstructors(clazz);
+        Preconditions.checkState(
+                autowiredConstructors.size() == 1,
+                "Too many autowired constructors: " + clazz.getName());
+        Constructor<?> constructor = autowiredConstructors.stream()
+                .findFirst()
+                .get();
+        List<Object> parametersInstances = getConstructorParametersInstances(constructor);
+        Object instance = constructor.newInstance(parametersInstances.toArray());
+        componentsStatusMap.put(clazz, ComponentStatus.CREATED);
+
+        invokePostConstructor(instance);
+        return instance;
+    }
+
+    private List<Object> getConstructorParametersInstances(Constructor<?> constructor) {
+        Class<?>[] parameterTypes = constructor.getParameterTypes();
+        List<Object> parameterInstances = Lists.newArrayList();
+
+        for (Class<?> pt : parameterTypes) {
+            Object beanInstance = getBeanInstance(pt);
+            if (beanInstance == null) {
+                Class<?> implClass = getImplementationClass(pt, injectionMap);
+                beanInstance = createInstance(implClass);
+                applicationScope.put(implClass, beanInstance);
+            }
+            parameterInstances.add(beanInstance);
+        }
+
+        return parameterInstances;
+    }
+
+    @SneakyThrows
+    private void invokePostConstructor(Object instance) {
+        for (Method m : getPostConstructorMethods(instance.getClass())) {
+            m.invoke(instance);
+        }
     }
 
     private void checkCreationPreconditions(Class<?> clazz) {

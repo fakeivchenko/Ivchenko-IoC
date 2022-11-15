@@ -25,7 +25,7 @@ public class ClassLoaderUtils {
         return classes;
     }
 
-    public static Set<Class<?>> getClassesInPackage(String packageName) throws IOException, ClassNotFoundException {
+    public static Set<Class<?>> getClassesInPackage(String packageName) throws IOException {
         return getClassesInPackage(packageName, true);
     }
 }

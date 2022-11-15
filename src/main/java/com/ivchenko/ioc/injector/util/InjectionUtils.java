@@ -23,7 +23,7 @@ public class InjectionUtils {
                 .filter(e -> e.getValue().equals(interfaceClass))
                 .collect(Collectors.toSet());
 
-        Preconditions.checkState(!implClassesEntries.isEmpty(), interfaceClass);
+        Preconditions.checkState(!implClassesEntries.isEmpty(), "Can't find implementation for class: " + interfaceClass);
 
         if (implClassesEntries.size() > 1) {
             // TODO: 11/14/22 Qualifier impl
