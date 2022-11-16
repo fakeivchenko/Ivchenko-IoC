@@ -34,7 +34,7 @@ implementation("com.ivchenko.ioc:ioc:1.0")
 ---
 ### Basic usage
 <b>NOTE:</b> Tutorial below uses <a href="https://projectlombok.org/">Lombok</a> library.
-
+#### Simple Application
 First, create some model data class. For example, User:
 ```java
 @Data @Builder
@@ -143,7 +143,7 @@ public void displayAllUsers() {
     System.out.println("--------------------");
 
 
-    Optional<User> userById = userService.getUserById(2L);
+    Optional<User> userById = userService.getUserById(3L);
     userById.ifPresentOrElse(user -> userService.removeUser(user), () -> {
         throw new IllegalStateException("User cannot be found");
     });
@@ -173,11 +173,26 @@ User(id=3, firstName=Paul, lastName=Strong, dob=2006-08-20)
 --------------------
 User list with removed user: 
 User(id=1, firstName=Anton, lastName=Ivchenko, dob=2002-06-08)
-User(id=3, firstName=Paul, lastName=Strong, dob=2006-08-20)
+User(id=2, firstName=Tracy, lastName=Penn, dob=1990-02-10)
 --------------------
 
 Process finished with exit code 0
 ```
+#### Qualifier
+If you have multiple implementations of one interface you can
+tell injector which one to use with Qualifier annotation.
+
+Simply annotate constructor parameter with this annotation and pass
+Simple Name of implementation class as annotation parameter:
+```java
+@Autowired
+public UserRegistryApplication(@Qualifier("UserServiceImpl2") UserService userService) {
+    this.userService = userService;
+}
+```
+Now, instance of UserServiceImpl2 will be injected
+instead of default first found.
+
 <i>Completed demo of this application can be viewed <a href="https://github.com/fakeivchenko/Ivchenko-IoC/tree/master/demos/UserRegistryDemo">here</a>.</i>
 
 ---
