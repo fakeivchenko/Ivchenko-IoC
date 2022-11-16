@@ -1,6 +1,6 @@
-package com.ivchenko.ioc.service;
+package com.ivchenko.demo.service;
 
-import com.ivchenko.ioc.model.User;
+import com.ivchenko.demo.model.User;
 
 import java.util.List;
 import java.util.Optional;

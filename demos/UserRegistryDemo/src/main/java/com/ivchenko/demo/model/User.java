@@ -1,4 +1,4 @@
-package com.ivchenko.ioc.model;
+package com.ivchenko.demo.model;
 
 import lombok.Builder;
 import lombok.Data;

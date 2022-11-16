@@ -3,6 +3,7 @@ package com.ivchenko.ioc.injector;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.Invokable;
 import com.ivchenko.ioc.annotation.Component;
 import com.ivchenko.ioc.injector.util.InjectionUtils;
 import lombok.SneakyThrows;
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.ivchenko.ioc.injector.util.ClassLoaderUtils.getClassesInPackage;
@@ -149,9 +151,20 @@ public class Injector {
 
     @SneakyThrows
     private void invokePostConstructor(Object instance) {
-        for (Method m : getPostConstructorMethods(instance.getClass())) {
-            m.invoke(instance);
-        }
+        Set<Method> postConstructorMethods = getPostConstructorMethods(instance.getClass());
+        Preconditions.checkState(
+                postConstructorMethods.size() <= 1,
+                "Too many PostConstructor methods: " + instance.getClass().getName()
+        );
+        Optional<Method> method = postConstructorMethods.stream()
+                .findFirst();
+        if (method.isEmpty()) return;
+
+        Preconditions.checkState(
+                method.get().getParameterCount() == 0,
+                "Invalid PostConstructor parameters count: " + method.get()
+        );
+        method.get().invoke(instance);
     }
 
     private void checkCreationPreconditions(Class<?> clazz) {

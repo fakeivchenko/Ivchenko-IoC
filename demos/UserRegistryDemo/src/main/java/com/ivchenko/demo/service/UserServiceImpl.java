@@ -1,8 +1,8 @@
-package com.ivchenko.ioc.service;
+package com.ivchenko.demo.service;
 
 import com.google.common.collect.Lists;
 import com.ivchenko.ioc.annotation.Component;
-import com.ivchenko.ioc.model.User;
+import com.ivchenko.demo.model.User;
 
 import java.time.LocalDate;
 import java.util.List;

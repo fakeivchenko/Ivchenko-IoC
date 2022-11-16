@@ -1,11 +1,12 @@
-package com.ivchenko.ioc;
+package com.ivchenko.demo;
 
+import com.ivchenko.demo.model.User;
+import com.ivchenko.demo.service.UserService;
 import com.ivchenko.ioc.annotation.Autowired;
 import com.ivchenko.ioc.annotation.Component;
 import com.ivchenko.ioc.annotation.PostConstructor;
+import com.ivchenko.ioc.annotation.Qualifier;
 import com.ivchenko.ioc.injector.Injector;
-import com.ivchenko.ioc.model.User;
-import com.ivchenko.ioc.service.UserService;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -15,7 +16,7 @@ public class UserRegistryApplication {
     private UserService userService;
 
     @Autowired
-    public UserRegistryApplication(UserService userService) {
+    public UserRegistryApplication(@Qualifier("UserServiceImpl2") UserService userService) {
         this.userService = userService;
     }
 
@@ -39,7 +40,7 @@ public class UserRegistryApplication {
         System.out.println("--------------------");
 
 
-        Optional<User> userById = userService.getUserById(2L);
+        Optional<User> userById = userService.getUserById(3L);
         userById.ifPresentOrElse(user -> userService.removeUser(user), () -> {
             throw new IllegalStateException("User cannot be found");
         });
